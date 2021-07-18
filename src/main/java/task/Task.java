@@ -2,12 +2,13 @@ package task;
 
 import crawler.CrawlerQueue;
 
-public class Task implements Runnable {
+public class Task implements Runnable, Scraper {
     private String url;
 
     private CrawlerQueue queue;
 
-    public Task() {}
+    public Task() {
+    }
 
     public Task(String url) {
         this.url = url;
@@ -22,11 +23,6 @@ public class Task implements Runnable {
         }
     }
 
-    // 具体的抓取任务
-    public void scrape() {
-
-    }
-
     public CrawlerQueue getQueue() {
         return queue;
     }
@@ -37,5 +33,10 @@ public class Task implements Runnable {
 
     public String getUrl() {
         return url;
+    }
+
+    @Override
+    public void scrape() {
+
     }
 }

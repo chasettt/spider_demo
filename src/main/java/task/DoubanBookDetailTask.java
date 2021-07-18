@@ -1,9 +1,6 @@
 package task;
 
-import model.DoubanBook;
 import processor.DoubanBookItemProcessor;
-
-import java.util.ArrayList;
 
 public class DoubanBookDetailTask extends Task {
     public DoubanBookDetailTask(String url) {

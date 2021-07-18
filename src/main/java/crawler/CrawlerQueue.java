@@ -18,4 +18,8 @@ public class CrawlerQueue {
     public Task poll() {
         return taskQueue.poll();
     }
+
+    public int getSize() {
+        return taskQueue.size();
+    }
 }

@@ -2,8 +2,6 @@ package processor;
 
 import esmodel.EsDoubanBook;
 import org.apache.ibatis.session.SqlSession;
-import org.elasticsearch.action.bulk.BulkRequest;
-import org.elasticsearch.client.RequestOptions;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -112,14 +110,7 @@ public class DoubanBookItemProcessor {
 
     private void saveToEs() {
         EsDoubanBook esDoubanBook = new EsDoubanBook();
-        BulkRequest  bulkRequest  = new BulkRequest();
-        bulkRequest.add(esDoubanBook.add(book, String.valueOf(book.getId())));
-
-        try {
-            EsClient.getClient().bulk(bulkRequest, RequestOptions.DEFAULT);
-        } catch (Exception e) {
-            System.out.println("添加失败:" + e);
-        }
+        esDoubanBook.save(book, String.valueOf(book.getId()));
     }
 
     public static void main(String[] args) {

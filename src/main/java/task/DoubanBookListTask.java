@@ -2,7 +2,8 @@ package task;
 
 import crawler.CrawlerQueue;
 import processor.*;
-import model.DoubanBook;
+import entity.DbBook;
+
 import java.util.*;
 
 public class DoubanBookListTask extends Task {
@@ -30,9 +31,9 @@ public class DoubanBookListTask extends Task {
         // 因为频繁访问会被网站反爬限制，暂时先用读取本地文件替代
         DoubanBookListProcessor processor = new DoubanBookListProcessor(getPageUrl());
         // 从url中解析出每本书详情的url，再生成任务放入队列中
-        ArrayList<DoubanBook> bookList  = processor.getItem();
+        ArrayList<DbBook> bookList  = processor.getItem();
         CrawlerQueue          queue = getQueue();
-        for (DoubanBook book : bookList) {
+        for (DbBook book : bookList) {
             System.out.println(book.getUrl());
             // 生成每一本书详情的任务，放入队列
             Task task = new DoubanBookDetailTask(book.getUrl());
