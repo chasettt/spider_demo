@@ -4,19 +4,26 @@ import java.util.concurrent.*;
 import task.DoubanBookListTask;
 import task.Task;
 
+// 主方法
 public class Crawler {
+    // 线程数
     private static final int THREAD_NUM = 5;
-
+    // 任务队列
     private CrawlerQueue taskQueue;
 
     private ExecutorService exec;
 
     public Crawler() {
-        this.taskQueue = new CrawlerQueue();
+        this.init();
+    }
+    // 初始化
+    private void init() {
+        taskQueue = new CrawlerQueue();
         exec = Executors.newFixedThreadPool(THREAD_NUM);
     }
+
     // 设置开启的第一个任务
-    public void setStartTask(DoubanBookListTask task) {
+    public void setStartTask(Task task) {
         exec.execute(task);
     }
 
@@ -24,10 +31,14 @@ public class Crawler {
         return taskQueue;
     }
 
+    private void waitNewTask() {
+
+    }
+
     public void start() throws Exception {
         Task task;
         int i = 0;
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             task = taskQueue.poll();
             System.out.println("poll:" + task);
             if (task == null) {
@@ -36,7 +47,8 @@ public class Crawler {
                     // 如果1分钟都没有从队列中取到数据，退出
                     System.exit(0);
                 }
-                continue;
+//                continue;
+                waitNewTask();
             }
             i = 0;
             task.setQueue(taskQueue);

@@ -42,7 +42,6 @@ public class DoubanBookListTask extends Task {
         // 生成下一页的任务，放入队列中
         if (page < PAGE_MAX) {
             page++;
-            System.out.println(page);
             DoubanBookListTask nextTask = new DoubanBookListTask(getUrl(), page);
             nextTask.setQueue(getQueue());
             getQueue().add(nextTask);

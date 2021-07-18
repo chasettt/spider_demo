@@ -41,22 +41,22 @@ public class DoubanBookListProcessor {
         return document;
     }
 
-    public void save() {
-        EsDoubanBook          esDoubanBook = new EsDoubanBook();
-        ArrayList<DoubanBook> bookList     = this.getItem();
-
-        BulkRequest bulkRequest = new BulkRequest();
-
-        for (DoubanBook db : bookList) {
-            System.out.println(db.getTitle());
-            bulkRequest.add(esDoubanBook.add(db));
-        }
-        try {
-            EsClient.getClient().bulk(bulkRequest, RequestOptions.DEFAULT);
-        } catch (Exception e) {
-            System.out.println("添加失败:" + e);
-        }
-    }
+//    public void save() {
+//        EsDoubanBook          esDoubanBook = new EsDoubanBook();
+//        ArrayList<DoubanBook> bookList     = this.getItem();
+//
+//        BulkRequest bulkRequest = new BulkRequest();
+//
+//        for (DoubanBook db : bookList) {
+//            System.out.println(db.getTitle());
+//            bulkRequest.add(esDoubanBook.add(db));
+//        }
+//        try {
+//            EsClient.getClient().bulk(bulkRequest, RequestOptions.DEFAULT);
+//        } catch (Exception e) {
+//            System.out.println("添加失败:" + e);
+//        }
+//    }
 
     public static void main(String[] args) {
         DoubanBookListProcessor processor = new DoubanBookListProcessor("/Users/teng/Downloads/douban/booklist/0.txt");

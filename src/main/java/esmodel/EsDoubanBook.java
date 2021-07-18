@@ -1,12 +1,13 @@
 package esmodel;
 
-import model.DoubanBook;
+import entity.DbBook;
 import org.elasticsearch.action.index.IndexRequest;
+
 import java.util.HashMap;
 import java.util.Map;
 
 public class EsDoubanBook {
-    public IndexRequest add(DoubanBook book, String id) {
+    public IndexRequest add(DbBook book, String id) {
         IndexRequest request = new IndexRequest("douban_book");
         request.id(id);
         Map<String, Object> jsonMap = new HashMap<String, Object>();
@@ -25,7 +26,7 @@ public class EsDoubanBook {
         return request;
     }
 
-    public IndexRequest add(DoubanBook book) {
+    public IndexRequest add(DbBook book) {
         IndexRequest request = new IndexRequest("douban_book");
         Map<String, Object> jsonMap = new HashMap<String, Object>();
         jsonMap.put("title", book.getTitle());

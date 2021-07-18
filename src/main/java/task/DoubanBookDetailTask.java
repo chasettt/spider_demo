@@ -24,8 +24,6 @@ public class DoubanBookDetailTask extends Task {
         System.out.println("detail_task:" + getUrl());
         // 爬取每本书的详情
         DoubanBookItemProcessor processor = new DoubanBookItemProcessor(getUrl());
-        // 保存至es
-        processor.save();
-//        DoubanBook book = processor.getItem();
+        processor.getItem();
     }
 }

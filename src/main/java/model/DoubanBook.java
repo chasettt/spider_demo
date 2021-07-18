@@ -1,5 +1,18 @@
 package model;
 
+import entity.DbBook;
+import org.apache.commons.dbutils.DbUtils;
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.handlers.BeanHandler;
+import org.apache.ibatis.session.SqlSession;
+import util.DbClient;
+import util.MyBatisUtil;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.List;
+
 public class DoubanBook {
     // id
     private int    id;
@@ -11,8 +24,6 @@ public class DoubanBook {
     private double rating;
     // 星级
     private double star;
-    // pub
-    private String pub;
     // 简介
     private String desc;
     // 图片
@@ -69,14 +80,6 @@ public class DoubanBook {
         this.star = star;
     }
 
-    public String getPub() {
-        return pub;
-    }
-
-    public void setPub(String Pub) {
-        this.pub = pub;
-    }
-
     public String getDesc() {
         return desc;
     }
@@ -129,5 +132,92 @@ public class DoubanBook {
     @Override
     public String toString() {
         return this.getTitle() + " : " + this.author + this.publisher;
+    }
+
+    /**
+     * 写入数据库
+     */
+    public void add() {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet   rs = null;
+        QueryRunner qr = new QueryRunner(DbClient.getDataSource());
+        try {
+//            conn = DbClient.getConnection();
+            String selectSql = "select id,title from douban_book where id=" + getId();
+            DoubanBook book = qr.query(selectSql, new BeanHandler<DoubanBook>(DoubanBook.class));
+            System.out.println(book);
+//            System.exit(0);
+//            pstmt = conn.prepareStatement(selectSql);
+//            pstmt.setInt(1, getId());
+//
+//            rs = pstmt.executeQuery();
+            pstmt = null;
+            if (rs.next()) {
+                // 更新
+                String updateSql = "update douban_book set " +
+                        "title='" + getTitle() +
+                        "' ,author='" + getAuthor() +
+                        "', price=" + getPrice() +
+                        ", publisher='" + getPublisher() +
+                        "', rating=" + getRating() +
+                        ", star=" + getStar() +
+                        ", pic='" + getPic() +
+                        "',publishTime='" + getPublishTime() +
+                        "', descs='" + getDesc() +
+                        "' where id=" + getId();
+                pstmt = conn.prepareStatement(updateSql);
+                pstmt.executeUpdate();
+            } else {
+                // 新增
+                String insertSql = "insert into douban_book(id,title,author,price,publisher,rating,star,pic,publishTime,descs) values(?,?,?,?,?,?,?,?,?,?)";
+                pstmt = conn.prepareStatement(insertSql);
+                pstmt.setInt(1, getId());
+                pstmt.setString(2, getTitle());
+                pstmt.setString(3, getAuthor());
+                pstmt.setDouble(4, getPrice());
+                pstmt.setString(5, getPublisher());
+                pstmt.setDouble(6, getRating());
+                pstmt.setDouble(7, getStar());
+                pstmt.setString(8, getPic());
+                pstmt.setString(9, getPublishTime());
+                pstmt.setString(10, getDesc());
+
+                int cnt = pstmt.executeUpdate();
+                System.out.println(cnt);
+            }
+            DbUtils.close(conn);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+
+        }
+    }
+
+    public static void main(String[] args) {
+//        DoubanBook book = new DoubanBook();
+//        book.setId(1);
+//        book.setPrice(11.5);
+//        book.setTitle("test");
+//        book.setAuthor("th");
+//        book.setPublisher("th press");
+//        book.setRating(9.8);
+//        book.setStar(4.5);
+//        book.setPic("www.baidu.com");
+//        book.setPublishTime("2021-6-1");
+//        book.setDesc("ahahahahahha");
+
+        SqlSession session = null;
+        try {
+            session = MyBatisUtil.openSession();
+            List<DbBook> list = session.selectList("doubanbook.selectAll");
+            for (DbBook b : list) {
+                System.out.println(b.getTitle());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            MyBatisUtil.closeSession(session);
+        }
     }
 }

@@ -1,18 +1,21 @@
 package processor;
 
 import esmodel.EsDoubanBook;
+import org.apache.ibatis.session.SqlSession;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-import model.DoubanBook;
+import entity.DbBook;
 import util.*;
 
 public class DoubanBookItemProcessor {
     private Document document;
 
     private int id;
+
+    private DbBook book;
 
     public DoubanBookItemProcessor(String url) {
         // 从url上获取图书id
@@ -25,11 +28,11 @@ public class DoubanBookItemProcessor {
 //        this.document = Jsoup.parse(FileUtil.readFile(url));
     }
 
-    public DoubanBook getItem() {
+    public DbBook getItem() {
         Elements e = document.select("div[id=wrapper]");
 
-        String   title   = e.select("div[id=mainpic] .nbg").attr("title");
-        String   pic     = e.select("div[id=mainpic] .nbg").attr("href");
+        String title = e.select("div[id=mainpic] .nbg").attr("title");
+        String pic   = e.select("div[id=mainpic] .nbg").attr("href");
 //        String   author  = e.select("div[id=info] span a").text();
 //        Elements details = e.select("div[id=info]");
 //
@@ -38,8 +41,8 @@ public class DoubanBookItemProcessor {
 //        String publishTime = details.first().childNodes().get(9).toString().trim();
 //        String priceStr    = details.first().childNodes().get(17).toString().trim();
 //        double price       = Double.valueOf(priceStr.replace("元", ""));
-        String ratingStr   = e.select(".rating_num").text();
-        double rating      = 0;
+        String ratingStr = e.select(".rating_num").text();
+        double rating    = 0;
         if (!ratingStr.isEmpty()) {
             rating = Double.valueOf(ratingStr);
         }
@@ -51,7 +54,7 @@ public class DoubanBookItemProcessor {
 
         }
 
-        DoubanBook book = new DoubanBook();
+        DbBook book = new DbBook();
         book.setId(id);
         book.setTitle(title);
         book.setPic(pic);
@@ -67,6 +70,9 @@ public class DoubanBookItemProcessor {
 //        book.setPublishTime(publishTime);
 //        book.setPrice(price);
         System.out.println(book);
+        this.book = book;
+
+        save();
         return book;
     }
 
@@ -75,11 +81,39 @@ public class DoubanBookItemProcessor {
     }
 
     public void save() {
-        EsDoubanBook esDoubanBook = new EsDoubanBook();
-        DoubanBook   doubanBook   = this.getItem();
+        getItem();
+        // 保存至mysql
+        saveToDb();
+        // 保存至es
+        saveToEs();
+    }
 
-        BulkRequest bulkRequest = new BulkRequest();
-        bulkRequest.add(esDoubanBook.add(doubanBook, String.valueOf(doubanBook.getId())));
+    private void saveToDb() {
+        SqlSession session = null;
+        try {
+            session = MyBatisUtil.openSession();
+            DbBook newbook = session.selectOne("doubanbook.selectOne", book.getId());
+            if (newbook == null) {
+                // 新增
+                int num = session.insert("doubanbook.addBook", book);
+            } else {
+                // 更新
+                int num = session.update("doubanbook.updateBook", book);
+            }
+            session.commit();
+        } catch (Exception e) {
+            if (session != null) {
+                session.rollback();
+            }
+        } finally {
+            MyBatisUtil.closeSession(session);
+        }
+    }
+
+    private void saveToEs() {
+        EsDoubanBook esDoubanBook = new EsDoubanBook();
+        BulkRequest  bulkRequest  = new BulkRequest();
+        bulkRequest.add(esDoubanBook.add(book, String.valueOf(book.getId())));
 
         try {
             EsClient.getClient().bulk(bulkRequest, RequestOptions.DEFAULT);
@@ -90,6 +124,6 @@ public class DoubanBookItemProcessor {
 
     public static void main(String[] args) {
         DoubanBookItemProcessor processor  = new DoubanBookItemProcessor("/Users/teng/Downloads/douban/books/1007305.txt");
-        DoubanBook              doubanBook = processor.getItem();
+        DbBook                  doubanBook = processor.getItem();
     }
 }
